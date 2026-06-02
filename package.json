@@ -15,3 +15,11 @@
     "express": "^5.2.1"
   }
 }
+
+{
+  "name": "video-downloader",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
