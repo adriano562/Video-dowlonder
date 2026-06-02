@@ -1,13 +1,15 @@
-FROM node:18
+# imagem Python oficial (já vem com pip funcionando)
+FROM python:3.11-slim
 
-# instala python + pip + ffmpeg
-RUN apt-get update && apt-get install -y python3 python3-pip ffmpeg
+# instala node
+RUN apt-get update && apt-get install -y curl ffmpeg
 
-# atualiza pip (IMPORTANTE)
-RUN python3 -m pip install --upgrade pip
+# instala node.js 18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
-# instala yt-dlp corretamente
-RUN python3 -m pip install yt-dlp
+# instala yt-dlp de forma estável
+RUN pip install --no-cache-dir yt-dlp
 
 WORKDIR /app
 
@@ -15,4 +17,4 @@ COPY . .
 
 RUN npm install
 
-CMD ["node", "server.js
+CMD ["node", "server.js"]
