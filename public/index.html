@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" type="text/css" href="estilo.css" media="screen">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="./Design-sem-nome-_1_-_1__1.ico" type="image/png">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <span class="logo-icon"><img src="Design sem nome (2).jpg" alt=""></span>
+                <span class="logo-text" id="logo-text">VideoDown</span>
+            </div>
+            <div class="language-selector">
+                <select id="language" onchange="changeLanguage(this.value)">
+                    <option value="pt">Português</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="layout">
+            <h2 id="title">Baixe qualquer vídeo(Qualquer plataforma twitter, tiktok, pinterest e discord)</h2>
+            <p id="subtitle">Cole a URL e escolha o formato</p>
+
+            <input type="text" id="url" placeholder="Cole a URL do vídeo aqui" />
+
+            <select id="format">
+                <option value="mp4" id="opt-video">Vídeo</option>
+                <option value="mp3" id="opt-audio">Áudio</option>
+            </select>
+
+            <button id="btn-download" onclick="startDownload()">Baixar</button>
+
+            <p id="status" style="font-size:13px; color:rgba(255,255,255,0.5); min-height:20px;"></p>
+        </div>
+    </main>
+
+    <script>
+        const translations = {
+            pt: {
+                title: "Baixe qualquer vídeo de qualquer plataforma",
+                subtitle: "Cole a URL e escolha o formato",
+                placeholder: "Cole a URL do vídeo aqui",
+                video: "Vídeo", audio: "Áudio",
+                download: "Baixar",
+                downloading: "Baixando...",
+                errorUrl: "Por favor, insira uma URL"
+            },
+            en: {
+                title: "Download any video",
+                subtitle: "Paste the URL and choose the format",
+                placeholder: "Paste the video URL here",
+                video: "Video", audio: "Audio",
+                download: "Download",
+                downloading: "Downloading...",
+                errorUrl: "Please enter a URL"
+            }
+        };
+
+        let lang = "pt";
+
+        function t(key) {
+            return translations[lang][key];
+        }
+
+        function changeLanguage(l) {
+            lang = l;
+            document.documentElement.lang = l;
+
+            document.getElementById("title").textContent = t("title");
+            document.getElementById("subtitle").textContent = t("subtitle");
+            document.getElementById("url").placeholder = t("placeholder");
+            document.getElementById("opt-video").textContent = t("video");
+            document.getElementById("opt-audio").textContent = t("audio");
+            document.getElementById("btn-download").textContent = t("download");
+
+            localStorage.setItem("language", l);
+        }
+
+        window.addEventListener("load", () => {
+            const saved = localStorage.getItem("language") || "pt";
+            document.getElementById("language").value = saved;
+            changeLanguage(saved);
+        });
+
+        async function startDownload() {
+            const url = document.getElementById("url").value.trim();
+            const format = document.getElementById("format").value;
+            const btn = document.getElementById("btn-download");
+            const status = document.getElementById("status");
+
+            if (!url) {
+                alert(t("errorUrl"));
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = t("downloading");
+            status.textContent = "Processando download...";
+
+            try {
+                const downloadUrl = `/stream?url=${encodeURIComponent(url)}&format=${format}`;
+
+                // abre download direto (mais confiável que <a>)
+                window.location.href = downloadUrl;
+
+                status.textContent = "Download iniciado no navegador";
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = t("download");
+                    status.textContent = "";
+                }, 4000);
+
+            } catch (err) {
+                console.error(err);
+
+                status.textContent = "Erro no download";
+                btn.disabled = false;
+                btn.textContent = t("download");
+            }
+        }
+    </script>
+
+    <footer>Desenvolvido por Adriano</footer>
+
+</body>
+
+</html>
