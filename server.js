@@ -1,19 +1,19 @@
 const express = require("express");
 const { spawn } = require("child_process");
-const fs = require("fs");
 const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
+// serve o front
 app.use(express.static(path.join(__dirname, "public")));
 
+// página inicial
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-
+// rota de download
 app.get("/stream", (req, res) => {
     const url = req.query.url;
     const format = req.query.format || "mp4";
@@ -22,22 +22,28 @@ app.get("/stream", (req, res) => {
         return res.status(400).send("URL obrigatória");
     }
 
-    const fileName = `video_${Date.now()}.${format}`;
-    const filePath = path.join(__dirname, fileName);
-
+    // comando yt-dlp seguro
     const args = format === "mp3"
-        ? ["-x", "--audio-format", "mp3", "-o", filePath, url]
-        : ["-f", "best", "-o", filePath, url];
+        ? [
+            "-x",
+            "--audio-format", "mp3",
+            "-o", "/tmp/%(title)s.%(ext)s",
+            url
+        ]
+        : [
+            "-f", "best",
+            "-o", "/tmp/%(title)s.%(ext)s",
+            url
+        ];
 
-    // 🔥 CORREÇÃO PRINCIPAL: usa python ao invés de yt-dlp direto
     const yt = spawn("python", ["-m", "yt_dlp", ...args]);
 
     yt.stdout.on("data", (data) => {
-        console.log(`yt-dlp: ${data}`);
+        console.log(data.toString());
     });
 
     yt.stderr.on("data", (data) => {
-        console.error(`yt-dlp error: ${data}`);
+        console.log("ERR:", data.toString());
     });
 
     yt.on("close", (code) => {
@@ -45,16 +51,12 @@ app.get("/stream", (req, res) => {
             return res.status(500).send("Erro no download");
         }
 
-        res.download(filePath, fileName, (err) => {
-            if (err) {
-                console.error(err);
-            }
-
-            fs.unlink(filePath, () => { });
-        });
+        // aqui só confirma sucesso (Railway não é ideal pra stream direto)
+        res.send("Download finalizado com sucesso");
     });
 });
 
+// start server (IMPORTANTE pro Railway)
 app.listen(PORT, () => {
-    console.log("Rodando em http://localhost:" + PORT);
+    console.log("Servidor rodando na porta", PORT);
 });
